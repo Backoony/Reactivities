@@ -18,7 +18,7 @@ public class GetActivityList
         {
             try
             {
-                for(int i = 0; i < 2; i++)
+                for(int i = 0; i < 0; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await Task.Delay(1000, cancellationToken);
