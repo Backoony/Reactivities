@@ -42,4 +42,6 @@ public class ActivitiesController() : BaseApiController
         await Mediator.Send(new DeleteActivity.Command { Id = id });
         return Ok();
     }
+
+
 }
