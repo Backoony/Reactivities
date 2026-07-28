@@ -1,16 +1,16 @@
 import { Box, Button, Paper, TextField, Typography } from '@mui/material'
-import type { FormEvent } from 'react';
+import type { SubmitEvent } from 'react';
 import { useActivities } from '../../../lib/hooks/useActivities';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 
 
 export default function ActivityForm() {
     const { id } = useParams();
     const { updateActivity, creatActivity, activity, isLoadingActivity } = useActivities(id);
-    const navgate = useNavigate();
+    const navigate = useNavigate();
 
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const data: { [key: string]: FormDataEntryValue } = {};
@@ -21,11 +21,11 @@ export default function ActivityForm() {
         if (activity) {
             data.id = activity.id;
             await updateActivity.mutateAsync(data as unknown as Activity);
-            navgate(`/activities/${activity.id}`)
+            navigate(`/activities/${activity.id}`)
         }else{
             creatActivity.mutate(data as unknown as Activity,{
                 onSuccess: (id) => {
-                    navgate(`/activities/${id}`)
+                    navigate(`/activities/${id}`)
                 }
             });
         }
@@ -49,7 +49,7 @@ export default function ActivityForm() {
             <TextField name='city' label="City" defaultValue={activity?.city}/>
             <TextField name='venue' label="Venue" defaultValue={activity?.venue}/>
             <Box display="flex" justifyContent="end" gap={3}>
-                <Button color="inherit">
+                <Button color="inherit" component={Link} to={activity ? `/activities/${activity?.id}`: '/activities'}>
                     Cancel
                 </Button>
                 <Button type="submit" variant="contained" color="success" disabled = {updateActivity.isPending || creatActivity.isPending}>
