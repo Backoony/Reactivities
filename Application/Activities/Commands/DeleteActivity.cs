@@ -1,3 +1,4 @@
+using Application.Core;
 using AutoMapper;
 using Domain;
 using MediatR;
@@ -7,20 +8,26 @@ namespace Application.Activities.Commands;
 
 public class DeleteActivity
 {
-    public class Command : IRequest
+    public class Command : IRequest<Result<Unit>>
     {
         public required string Id { get; set; }
     }
 
-    public class Handler(AppDbContext context) : IRequestHandler<Command>
+    public class Handler(AppDbContext context) : IRequestHandler<Command, Result<Unit>>
     {
-        public async Task Handle(Command request, CancellationToken cancellationToken)
+        public async Task<Result<Unit>> Handle(Command request, CancellationToken cancellationToken)
         {
-            var activity = await context.Activities.FindAsync([request.Id], cancellationToken) ?? throw new Exception("Activity not found");
+            var activity = await context.Activities.FindAsync([request.Id], cancellationToken);
+            
+            if (activity is null) return Result<Unit>.Failure("Activity not found", 404);
             
             context.Activities.Remove(activity);
             
-            await context.SaveChangesAsync(cancellationToken);
+            var result = await context.SaveChangesAsync(cancellationToken) > 0;
+
+            if (!result) return Result<Unit>.Failure("Failed to delete activity", 400);
+
+            return Result<Unit>.Success(Unit.Value);
         }
     }
 
