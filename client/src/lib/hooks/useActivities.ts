@@ -117,7 +117,10 @@ export const useActivities = (id?: string) => {
       if (context?.prevActivity) {
         queryClient.setQueryData(['activities', activityId], context.prevActivity)
       }
-    }
+    },
+    // onSettled: async () => {
+    //   await queryClient.invalidateQueries({ queryKey: ['activities', id] });
+    // }
   })
 
   return { activities, isLoading, updateActivity, creatActivity, deleteActivity, activity, isLoadingActivity,updateAttendance };
