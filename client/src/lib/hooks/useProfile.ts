@@ -86,6 +86,29 @@ export const useProfile = (id?: string) => {
         }
     })
 
+    const updateProfile = useMutation({
+        mutationFn:async (profile:Profile) => {
+            await agent.put('/profiles',profile);
+        },
+        onSuccess: (_,profile) => {
+            queryClient.setQueryData(['profile', id],(oldProfile:Profile)=>{
+                if(!oldProfile) return oldProfile;
+                return {
+                    ...oldProfile,
+                    displayName: profile.displayName,
+                    bio: profile.bio
+                }
+            });
+            queryClient.setQueryData(['user'],(user:User)=>{
+                if(!user) return user;
+                return {
+                    ...user,
+                    displayName: profile.displayName
+                }
+            })
+        }
+    })
+
     const isCurrentUser = useMemo(() => {
         return id === queryClient.getQueryData<User>(['user'])?.id
     }, [id, queryClient])
@@ -93,6 +116,6 @@ export const useProfile = (id?: string) => {
 
 
     return {
-        profile, loadingProfile, photos, loadingPhotos, isCurrentUser, uploadPhoto, setMainPhoto, deletePhoto
+        profile, loadingProfile, photos, loadingPhotos, isCurrentUser, uploadPhoto, setMainPhoto, deletePhoto, updateProfile
     }
 }
