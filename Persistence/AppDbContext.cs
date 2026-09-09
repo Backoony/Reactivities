@@ -2,25 +2,51 @@ using System;
 using Domain;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Persistence;
 
-public class AppDbContext(DbContextOptions options) : IdentityDbContext<User>(options)
+public class AppDbContext(DbContextOptions options) : IdentityDbContext<User>(options) //调用基类构造函数,如果基类没有无参构造函数，子类构造必须显式写base(xxx)把参数传给基类构造
 {
-    public DbSet<Activity> Activities { get; set; }
+    public required DbSet<Activity> Activities { get; set; }
 
-    public DbSet<ActivityAttendee> ActivityAttendees { get; set; }
+    public required DbSet<ActivityAttendee> ActivityAttendees { get; set; }
 
-    public DbSet<Photo> Photos { get; set; }
+    public required DbSet<Photo> Photos { get; set; }
+
+    public required DbSet<Comment> Comments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(builder);
+        base.OnModelCreating(builder);    //调用基类的重写方法当父类的 ConfigureConventions 里面写了全局配置，子类又重写了这个方法。如果你希望保留父类里面定义的约定规则，就必须手动调用
 
         builder.Entity<ActivityAttendee>(x => x.HasKey(a => new { a.ActivityId, a.UserId }));
 
         builder.Entity<ActivityAttendee>().HasOne(x => x.User).WithMany(x => x.Activities).HasForeignKey(x => x.UserId);
 
         builder.Entity<ActivityAttendee>().HasOne(x => x.Activity).WithMany(x => x.Attendees).HasForeignKey(x => x.ActivityId);
+
+        var dateTimeConverter = new ValueConverter<DateTime,DateTime>(
+            v => v.ToUniversalTime(),  //入库转换，转换为世界协调世界
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc)  //读库转换  告诉读出来的时间为世界协调时间，打上标记
+        );
+
+        foreach (var entityType in builder.Model.GetEntityTypes()) //拿到当前模型所有实体元数据
+        {
+            foreach (var property in entityType.GetProperties())  //实体的所有属性元数据
+            {
+                if (property.ClrType == typeof(DateTime))    //属性的clr类型
+                {
+                    property.SetValueConverter(dateTimeConverter);   //给属性附值转换器
+                }
+            }
+        }
+
+        //可以通过override ConfigureConventions
     }
+
+    //在解决方案运行
+    //dotnet ef migrations add CommentEntityAdded -p Persistence -s API
+    //命令    添加迁移          迁移名称            依赖项目        运行项目
+    
 }
