@@ -33,6 +33,7 @@ public class MappingProfiles : Profile
             .ForMember(d=>d.DisplayName, o=>o.MapFrom(s=>s.User.DisplayName))
             .ForMember(d=>d.UserId, o=>o.MapFrom(s=>s.User.Id))
             .ForMember(d=>d.ImageUrl, o=>o.MapFrom(s=>s.User.ImageUrl)); 
-            //       映射给(CommendDto) 映射法       映射自(Comment)        
+            //       映射给(CommendDto) 映射法       映射自(Comment)     
+        CreateMap<Activity,UserActivityDto>();   
     }
 }

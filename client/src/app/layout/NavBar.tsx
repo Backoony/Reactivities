@@ -1,5 +1,5 @@
 import { Group } from "@mui/icons-material";
-import  { Box, AppBar, Toolbar, Typography, Container, MenuItem, LinearProgress} from "@mui/material";
+import  { Box, AppBar, Toolbar, Typography, Container, MenuItem, CircularProgress} from "@mui/material";
 import { NavLink } from "react-router";
 import MenuItemLink from "../shared/components/MenuItemLink";
 import { useStore } from "../../lib/hooks/useStore";
@@ -14,16 +14,22 @@ export default function NavBar() {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" sx={{
+      <AppBar position="fixed" sx={{
         backgroundImage: 'linear-gradient(135deg , #182a73 0%, #318aae 69%, #20a7ac 89%)',
-        position: 'relative',
       }}>
         <Container maxWidth='xl'>
           <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Box>
               <MenuItem component={NavLink} to='/' sx={{ display: 'flex', gap: 2 }}>
                 <Group fontSize="large" />
-                <Typography variant="h4" fontWeight="bold">Reactivities</Typography>
+                <Typography variant="h4" fontWeight="bold" sx={{position:'relative'}}>Reactivities</Typography>
+                {/* 给出相对位置，保证绝对位置 */}
+                <Observer>
+                  {() => uiStore.isLoading ? (
+                    <CircularProgress size={20} thickness={7} sx={{color:'white',position:'absolute', top:'30%', left:'105%'}} /> 
+                    // 绝对位置定位
+                  ) : null}
+                </Observer>
               </MenuItem>
             </Box>
             <Box sx={{ display: 'flex' }}>
@@ -49,7 +55,7 @@ export default function NavBar() {
             </Box>
           </Toolbar>
         </Container>
-        <Observer>
+        {/* <Observer>
           {() => uiStore.isLoading ? (
             <LinearProgress color="secondary" sx={{
               position: 'absolute',
@@ -59,7 +65,7 @@ export default function NavBar() {
               height: 4
             }} />
           ) : null}
-        </Observer>
+        </Observer> 原加载指示器，使用mbox观察者正在跟踪状态*/}
 
       </AppBar>
     </Box>

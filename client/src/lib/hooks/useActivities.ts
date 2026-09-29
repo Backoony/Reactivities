@@ -1,32 +1,48 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import agent from "../api/agent";
 import { useLocation } from "react-router";
 import { useAccount } from "./useAccount";
+import { useStore } from "./useStore";
 
 export const useActivities = (id?: string) => {
+  const { activityStore: { filter, startDate } } = useStore();
   const queryClient = useQueryClient();
   const { currentUser } = useAccount();
   const location = useLocation();
 
-  const { data: activities, isLoading } = useQuery({
-    queryKey: ['activities'],
-    queryFn: async () => {
-      const response = await agent.get<Activity[]>('/activities');
+  const { data: activitiesGroup, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery<PagedList<Activity, string>>({    //使用无限查询
+    queryKey: ['activities', filter, startDate],  //使用相同的querykey查询不会生效，要想使变化让查询生效，需要将filter和startDate一并传入
+    queryFn: async ({ pageParam = null }) => {
+      const response = await agent.get<PagedList<Activity, string>>('/activities', {
+        params: {
+          cursor: pageParam,
+          pageSize: 3,
+          filter,
+          startDate
+        }
+      });
       return response.data;
     },
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: !id && location.pathname === '/activities' && !!currentUser,
-    staleTime: 1000 * 60 , // 1 minutes
-    select: date => {
-      return date.map(activity => {
-        const host = activity.attendees.find(x=>x.id === activity.hostId);
-        return{
-          ...activity,
-          isHost: currentUser?.id === activity.hostId,
-          isGoing: activity.attendees.some(x => x.id === currentUser?.id),
-          hostImageUrl:host?.imageUrl
-        }
-      })
-    }
+    select: data => ({
+      ...data,
+      pages: data.pages.map((page) => ({
+        ...page,
+        items: page.items.map(activity => {
+          const host = activity.attendees.find(x => x.id === activity.hostId);
+          return {
+            ...activity,
+            isHost: currentUser?.id === activity.hostId,
+            isGoing: activity.attendees.some(x => x.id === currentUser?.id),
+            hostImageUrl: host?.imageUrl
+          }
+        })
+      }))
+    })
   });
 
   const { data: activity, isLoading: isLoadingActivity } = useQuery({
@@ -70,7 +86,7 @@ export const useActivities = (id?: string) => {
     }
   });
 
-   const deleteActivity = useMutation({
+  const deleteActivity = useMutation({
     mutationFn: async (id : string) => {
       await agent.delete(`/activities/${id}`);
     },
@@ -127,5 +143,5 @@ export const useActivities = (id?: string) => {
     // }
   })
 
-  return { activities, isLoading, updateActivity, creatActivity, deleteActivity, activity, isLoadingActivity,updateAttendance };
+  return { activitiesGroup, isFetchingNextPage, fetchNextPage, hasNextPage, isLoading, updateActivity, creatActivity, deleteActivity, activity, isLoadingActivity, updateAttendance };
 }

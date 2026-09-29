@@ -1,3 +1,8 @@
+type PagedList<T,TCursor> = {
+  items: T[]
+  nextCursor: TCursor
+}
+
 type Activity = {
   id: string
   title: string
@@ -15,6 +20,13 @@ type Activity = {
   hostId: string
   hostDisplayName: string
   hostImageUrl?: string
+}
+
+type UserActivity = {
+  id: string
+  title: string
+  date: Date
+  category: string
 }
 
 type Profile = {

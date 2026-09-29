@@ -51,10 +51,16 @@ namespace API.Controllers
             return HandleResult(await Mediator.Send(new FollowToggle.Command{ TargetUserId = userId}));
         }
 
-        [HttpGet("{UserId}/follow-list")]
-        public async Task<ActionResult> GetFollowings(string UserId, string predicate)
+        [HttpGet("{userId}/follow-list")]
+        public async Task<ActionResult> GetFollowings(string userId, string predicate)
         {
-            return HandleResult(await Mediator.Send(new GetFollowings.Query { UserId = UserId, Predicate = predicate }));
+            return HandleResult(await Mediator.Send(new GetFollowings.Query { UserId = userId, Predicate = predicate }));
+        }
+
+        [HttpGet("{userId}/activities")]
+        public async Task<ActionResult<List<UserActivityDto>>> GetUserActivities(string userId, [FromQuery]string filter)
+        {
+            return HandleResult(await Mediator.Send(new GetUserActivities.Query{ UserId = userId, Filter = filter}));
         }
     }
 }

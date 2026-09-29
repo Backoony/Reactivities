@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import agent from "../api/agent"
 import { useMemo } from "react";
 
-export const useProfile = (id?: string, predicate?: string) => {
+export const useProfile = (id?: string, predicate?: string, filter?: string) => {
     const queryClient = useQueryClient();
 
     const { data: profile, isLoading: loadingProfile } = useQuery<Profile>({
@@ -11,16 +11,16 @@ export const useProfile = (id?: string, predicate?: string) => {
             const response = await agent.get<Profile>(`/profiles/${id}`);
             return response.data;
         },
-        enabled: !!id && !predicate
+        enabled: !!id && !predicate && !filter
     })
 
     const {data:photos, isLoading: loadingPhotos} = useQuery<Photo[]>({
-        queryKey:['photo',id],
+        queryKey: ['photo', id],
         queryFn:async ()=>{
             const response = await agent.get<Photo[]>(`/profiles/${id}/photos`);
             return response.data;
         },
-        enabled: !!id && !predicate  //避免在查询关注者的时候执行该查询
+        enabled: !!id && !predicate && !filter,//避免在查询关注者的时候执行该查询
     })
 
     const {data: followings,isLoading:loadingFollowings} = useQuery<Profile[]>({
@@ -29,7 +29,16 @@ export const useProfile = (id?: string, predicate?: string) => {
             const response = await agent.get<Profile[]>(`/profiles/${id}/follow-list?predicate=${predicate}`);
             return response.data
         },
-        enabled:!!predicate && !!id
+        enabled:!!predicate && !!id 
+    })
+
+    const {data: userActivities,isLoading: loadingUserActivities} = useQuery<UserActivity[]>({
+        queryKey: ['userActivities', id, filter],
+        queryFn:async () => {
+            const response = await agent.get<UserActivity[]>(`/profiles/${id}/activities?filter=${filter}`);
+            return response.data
+        },
+        enabled:!!filter && !!id && !predicate
     })
 
     const uploadPhoto = useMutation({
@@ -142,6 +151,19 @@ export const useProfile = (id?: string, predicate?: string) => {
 
 
     return {
-        profile, loadingProfile, photos, loadingPhotos, isCurrentUser, uploadPhoto, setMainPhoto, deletePhoto, updateProfile, updateFollowing,followings,loadingFollowings
+        profile, 
+        loadingProfile, 
+        photos, 
+        loadingPhotos,
+        userActivities, 
+        loadingUserActivities, 
+        isCurrentUser, 
+        uploadPhoto, 
+        setMainPhoto, 
+        deletePhoto, 
+        updateProfile, 
+        updateFollowing, 
+        followings, 
+        loadingFollowings
     }
 }
