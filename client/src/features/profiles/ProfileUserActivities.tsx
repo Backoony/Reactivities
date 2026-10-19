@@ -1,6 +1,6 @@
 import { useParams } from "react-router"
 import { useProfile } from "../../lib/hooks/useProfile";
-import { Box, Grid2, Typography } from "@mui/material";
+import { Grid2, Typography } from "@mui/material";
 import UserActivityCard from "./UserActivityCard";
 
 type Props = {

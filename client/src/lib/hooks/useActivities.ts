@@ -3,6 +3,7 @@ import agent from "../api/agent";
 import { useLocation } from "react-router";
 import { useAccount } from "./useAccount";
 import { useStore } from "./useStore";
+import type { FieldValues } from "react-hook-form";
 
 export const useActivities = (id?: string) => {
   const { activityStore: { filter, startDate } } = useStore();
@@ -23,7 +24,6 @@ export const useActivities = (id?: string) => {
       });
       return response.data;
     },
-    staleTime: 1000 * 60 * 5,
     placeholderData: keepPreviousData,
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -65,23 +65,23 @@ export const useActivities = (id?: string) => {
 
   const updateActivity = useMutation({
     mutationFn: async (activity: Activity) => {
-      await agent.put('/activities', activity);
+      await agent.put(`/activities/${id}`, activity);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ['activities']
+        queryKey: ['activities', id]
       })
     }
   });
 
   const creatActivity = useMutation({
-    mutationFn: async (activity : Activity) => {
+    mutationFn: async (activity : FieldValues) => {
       const response =  await agent.post('/activities', activity);
       return response.data;
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ['activities']
+        queryKey: ['activities', filter, startDate]
       })
     }
   });
@@ -92,7 +92,7 @@ export const useActivities = (id?: string) => {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ['activities']
+        queryKey: ['activities', filter, startDate]
       })
     }
   });
@@ -131,6 +131,11 @@ export const useActivities = (id?: string) => {
       })
 
       return { prevActivity };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey:['activities', filter, startDate]
+      })
     },
     onError: (error, activityId, context) => {
       console.log(error);

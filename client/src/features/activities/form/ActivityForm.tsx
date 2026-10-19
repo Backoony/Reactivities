@@ -1,6 +1,6 @@
 import { Box, Button, Paper, Typography } from '@mui/material'
 import { useActivities } from '../../../lib/hooks/useActivities';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { activitySchema, type ActivitySchema } from '../../../lib/schemas/activitySchema';
@@ -71,7 +71,7 @@ export default function ActivityForm() {
               </Box>
               <LocationInput label='Enter the location' control={control} name='location' />
               <Box display="flex" justifyContent="end" gap={3}>
-                  <Button color="inherit" component={Link} to={activity ? `/activities/${activity?.id}` : '/activities'}>
+                  <Button color="inherit" onClick={() => navigate(-1)}>
                       Cancel
                   </Button>
                   <Button type="submit" variant="contained" color="success" disabled={updateActivity.isPending || creatActivity.isPending}>

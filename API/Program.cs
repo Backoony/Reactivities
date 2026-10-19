@@ -25,7 +25,7 @@ builder.Services.AddControllers(opt =>
 });
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
-    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 builder.Services.AddCors();
 
@@ -68,11 +68,17 @@ app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials(
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+//配置使用静态文件
+
 app.MapControllers();
 
 app.MapGroup("api").MapIdentityApi<User>();
 
 app.MapHub<CommentHub>("/comments"); //SignR端点
+
+app.MapFallbackToController("Index","Fallback");
 
 using var scope = app.Services.CreateScope();
 var services = scope.ServiceProvider;

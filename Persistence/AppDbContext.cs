@@ -32,7 +32,7 @@ public class AppDbContext(DbContextOptions options) : IdentityDbContext<User>(op
         {
             x.HasKey(k => new { k.ObserveId, k.TargetId }); //设置主键
             x.HasOne(o => o.Observe).WithMany(f => f.Followings).HasForeignKey(o => o.ObserveId).OnDelete(DeleteBehavior.Cascade);  //配置一对多关系
-            x.HasOne(o => o.Target).WithMany(f => f.Followers).HasForeignKey(o => o.TargetId).OnDelete(DeleteBehavior.Cascade); //配置一对多关系
+            x.HasOne(o => o.Target).WithMany(f => f.Followers).HasForeignKey(o => o.TargetId).OnDelete(DeleteBehavior.NoAction); //配置一对多关系
         });
 
         var dateTimeConverter = new ValueConverter<DateTime,DateTime>(
