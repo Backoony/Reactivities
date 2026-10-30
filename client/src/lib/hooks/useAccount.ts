@@ -10,23 +10,19 @@ export const useAccount = () => {
     const navigate = useNavigate();
 
     const loginUser = useMutation({
-        mutationFn:async( creds: LoginSchema) => {
-            await agent.post('/login?useCookies=true',creds)
+        mutationFn: async (creds: LoginSchema) => {
+            await agent.post('/login?useCookies=true', creds)
         },
-        onSuccess:async ()=>{
+        onSuccess: async () => {
             await queryClient.invalidateQueries({
-                queryKey:['user']
+                queryKey: ['user']
             });
         }
     });
 
     const registerUser = useMutation({
-        mutationFn:async (creds: RegisterSchema) =>{
-            await agent.post('/account/register',creds)
-        },
-        onSuccess:()=>{
-            toast.success('Register successful - you can now login');
-            navigate('/login');
+        mutationFn: async (creds: RegisterSchema) => {
+            await agent.post('/account/register', creds)
         }
     })
 
@@ -45,13 +41,33 @@ export const useAccount = () => {
         }
     })
 
+    const verifyEmail = useMutation({
+        mutationFn: async ({ userId, code }: { userId: string, code: string }) => {
+            await agent.get(`/confirmEmail?userId=${userId}&code=${code}`)
+        }
+    });
+
+    const resendConfirmationEmail = useMutation({
+        mutationFn: async ({ email, userId }: { email?: string, userId: string | null }) => {
+            await agent.get(`/account/resendConfirmEmail`, {
+                params: {
+                    email,
+                    userId
+                }
+            })
+        },
+        onSuccess: () => {
+            toast.success('Email sent - please check you email')
+        }
+    });
+
     const { data: currentUser, isLoading: loadingUserInfo } = useQuery({
         queryKey: ['user'],
         queryFn: async () => {
             const response = await agent.get<User>('/account/user-info');
             return response.data;
         },
-        enabled:!queryClient.getQueryData(['user'])
+        enabled: !queryClient.getQueryData(['user'])
     });
 
     return {
@@ -59,7 +75,9 @@ export const useAccount = () => {
         currentUser,
         logoutUser,
         loadingUserInfo,
-        registerUser
+        registerUser,
+        verifyEmail,
+        resendConfirmationEmail
     }
 }
 
